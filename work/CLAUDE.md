@@ -12,12 +12,23 @@ A link looks like `https://duels.ink/replay/<36-character id>`.
 3. Read `review-rules.md` and follow its method fully before writing: map both decks, find each game's clock, rebuild the state at each turning point and verify every line you recommend. Read `context.md` and use it only if the match is the matchup it describes.
 4. Write the review. The transcript says whose side to review from (`REVIEW FROM:`): the player who recorded the replay, whose hand is visible.
 5. Save the review to the path on the transcript's `SAVE REVIEW TO:` line.
-6. Post it with the Discord reply tool, in the same channel or DM. Discord allows 2,000 characters per message, so split at paragraph or bullet boundaries into pieces of at most 1,900 characters, in order. If the reply tool can attach files, also attach the saved review and `reviews/<id>.transcript.txt`.
+6. Post it with the Discord reply tool, in the same channel or DM, as formatted Discord text (see "Discord formatting" below). Discord allows 2,000 characters per message, so split before a heading or between bullets into pieces of at most 1,900 characters, in order. Never split inside a bullet, bold text or code. Don't attach any files; post the review as text only.
 7. Run `python3 replay_tool.py "<the link>" --done`. It records how long the review took so future estimates get more accurate. Don't mention it in Discord.
 
 Several links in one message: review each one in turn.
 
 Never reply to your own messages or to other bots. Don't repeat replay links in your replies; refer to games by player names and play numbers instead.
+
+## Discord formatting (every message you send)
+Discord renders Markdown, so use it to make replies easy to scan:
+- `## ` for the review title and `### ` for each game and for Takeaways. No `#` (too big).
+- `- ` bullets for key moments, each starting with the play number in bold: `- **Game 1, 24/102:** …`.
+- **Bold** for card names the first time they appear in a bullet, and for the better line's key move. *Italics* for short asides.
+- `> ` quote for the one-line verdict under the title.
+- `-# ` small text for footnotes, like the win-probability caveat.
+- `` `inline code` `` only for numbers worth comparing at a glance, e.g. `58% → 36%`, `5 ink + 2 drops = 7`.
+- No tables or code blocks: they don't fit on phones.
+- Never post a bare link, since Discord turns it into a preview card. If a link is needed, wrap it in angle brackets: `<https://…>`.
 
 ## Follow-up questions
 If someone asks about a review ("what if I'd played Dale at 65?", "show me the stack for game 2"), answer from the saved files in `reviews/`: the transcript has every play, revealed hand and card text. Answer to the same standard as `review-rules.md`: rebuild the state at that play and check ink, lore, drying and exert state before claiming a line works. Keep answers Discord-sized.

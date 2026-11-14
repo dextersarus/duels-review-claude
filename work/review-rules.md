@@ -35,9 +35,27 @@ The transcript has a card reference taken from the replay itself, an optional li
 - The opponent's hand and draws are hidden unless a REVEALED line shows them. Never claim they had or lacked a card without evidence; say "if they had X".
 - Use the card reference for exact card text. Don't rely on memory for card text.
 
-## Write-up
-- **Line 1:** match result and the one-sentence reason it went that way.
-- **Per game** ("**Game 1**", …): one line on the plan and the clock, then the key moments as bullets. Each bullet starts with the play number and gives what happened, the better line with its numbers, and why it matters (lore or win-chance impact). Order bullets by importance. Mark minor points as minor, and call out plays that were correct when they look questionable.
-- **Takeaways:** 3–5 lessons the player can apply next time against this deck.
-- Name cards exactly. Bold sparingly. No tables. No headings bigger than bold text.
+## Write-up (Discord formatting)
+Follow the "Discord formatting" rules in CLAUDE.md. Layout:
+
+```
+## <Player> vs <Opponent>: <result>
+> <one sentence on why it went that way>
+
+### Game 1: <result>
+<one line on each deck's plan and the clock>
+- **24/102:** <what happened>. Better: <line with its numbers>. <why it matters, e.g. `58% → 36%`>
+- **53/102** *(minor)*: …
+- **87/102**: <a play that looks wrong but was correct, and why>
+
+### Game 2: <result>
+…
+
+### Takeaways
+- <3–5 lessons to apply next time against this deck>
+-# Win percentages are duels.ink's engine estimate.
+```
+
+- Order bullets by importance. Mark minor points as minor.
+- Name cards exactly as in the card reference.
 - Aim for under 3,500 characters total. Spend the space on the 2–3 decisions that mattered most rather than covering everything.
