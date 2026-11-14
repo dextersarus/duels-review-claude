@@ -8,22 +8,38 @@ It uses your Claude Pro or Max login (Claude Code's Discord plugin needs a claud
 1. https://discord.com/developers/applications → **New Application** → name it.
 2. **Bot** tab → **Reset Token** → copy the token. Turn on **Message Content Intent** → Save.
 3. **OAuth2 → URL Generator**: scope `bot`; permissions View Channels, Send Messages, Send Messages in Threads, Read Message History, Attach Files, Add Reactions. Open the URL and add the bot to your server.
-4. In Discord: Settings → Advanced → turn on **Developer Mode**. Right-click the channel you'll post replays in → **Copy Channel ID**. Keep it for step 4.
+4. In Discord: Settings → Advanced → turn on **Developer Mode**. Right-click the channel you'll post replays in → **Copy Channel ID**. Keep it for step 5.
 
-## 2. Build and start the container
-Copy this folder to the server, e.g. `/mnt/user/appdata/duels-review-claude/src`, then in the Unraid terminal:
+## 2. Get the code onto Unraid
+The repo is private, so cloning needs a GitHub token:
+1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token. Repository access: only `duels-review-claude`. Permissions: **Contents: Read-only**. Copy the token.
+2. In the Unraid terminal (replace `YOUR_TOKEN`). This uses a throwaway git container, so it works whether or not Unraid has git installed:
 
 ```bash
-cd /mnt/user/appdata/duels-review-claude/src
-mkdir -p ../home ../work && chown -R 99:100 ../home ../work
-docker compose up -d --build
+mkdir -p /mnt/user/appdata/duels-review-claude && cd /mnt/user/appdata/duels-review-claude
+docker run --rm -v "$PWD":/git alpine/git clone https://x-access-token:YOUR_TOKEN@github.com/dextersarus/duels-review-claude.git src
+mkdir -p home work && chown -R 99:100 home work
 ```
 
-No Compose? `docker build -t duels-review-claude . && docker run -d --name duels-review-claude --restart unless-stopped -v /mnt/user/appdata/duels-review-claude/home:/home/claude -v /mnt/user/appdata/duels-review-claude/work:/work duels-review-claude`
+To update later: `docker run --rm -v /mnt/user/appdata/duels-review-claude/src:/git alpine/git pull`, then rebuild (next step).
+
+## 3. Build and start the container
+
+```bash
+docker build -t duels-review-claude /mnt/user/appdata/duels-review-claude/src
+docker run -d --name duels-review-claude --restart unless-stopped \
+  -v /mnt/user/appdata/duels-review-claude/home:/home/claude \
+  -v /mnt/user/appdata/duels-review-claude/work:/work \
+  duels-review-claude
+```
+
+With the Compose Manager plugin you can instead run `docker compose up -d --build` in the `src` folder.
+
+To rebuild after an update: `docker stop duels-review-claude && docker rm duels-review-claude`, then run both commands above again. Your login and reviews are kept in the `home` and `work` folders.
 
 The first start installs Claude Code and Bun into the persistent home folder (a minute or two; watch with `docker logs -f duels-review-claude`).
 
-## 3. One-time setup inside Claude Code
+## 4. One-time setup inside Claude Code
 Attach to the session:
 
 ```bash
@@ -47,7 +63,7 @@ Then, in Claude Code:
    docker restart duels-review-claude
    ```
 
-## 4. Pair the two of you and open the channel
+## 5. Pair the two of you and open the channel
 Attach again (`docker exec -it duels-review-claude tmux attach -t claude`). If Claude Code asks you to confirm skipping permission prompts, accept.
 
 1. Each of you DMs the bot. It replies with a pairing code. For each code, type in Claude Code: `/discord:access pair CODE`
@@ -63,7 +79,7 @@ Test it: post `@YourBot https://duels.ink/replay/01a1cc4f-fbdf-7e6e-bacc-fde2b92
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
 - If your Claude login expires, attach and run `/login` again.
 - To change how reviews are written, edit `work/review-rules.md` or `work/context.md` (your matchup notes) and run `docker restart duels-review-claude`.
-- Updating the package: rebuild with `docker compose up -d --build`. Your edited `CLAUDE.md`, rules and notes are kept; `replay_tool.py` is always replaced with the new version. To take a new `CLAUDE.md` from the package, delete the one in `work/` first.
+- Updating: pull and rebuild as in step 3. Your edited `CLAUDE.md`, rules and notes are kept; `replay_tool.py` is always replaced with the new version. To take a new `CLAUDE.md` from the package, delete the one in `work/` first.
 
 ## Permissions and safety
 Unattended, Claude Code would stop and wait at every permission prompt, so the container runs it with `--dangerously-skip-permissions`. That's reasonable here because:
