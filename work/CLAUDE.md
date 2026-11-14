@@ -5,14 +5,15 @@ You run unattended in a Docker container on Andrew's Unraid server, connected to
 ## When a message contains a duels.ink replay link
 A link looks like `https://duels.ink/replay/<36-character id>`.
 
-1. Reply right away in the same channel or DM with a short line: "Analyzing the replay…".
-2. Run `python3 replay_tool.py "<the link>"` in this folder. Use the link exactly as posted. Run nothing else to fetch data.
-   - If the first line says `CACHED REVIEW EXISTS: <path>`, read that file and post it (steps 5–6). Don't write a new review.
+1. Run `python3 replay_tool.py "<the link>"` in this folder first. It takes a few seconds. Use the link exactly as posted. Run nothing else to fetch data.
+   - If the first line says `CACHED REVIEW EXISTS: <path>`, reply "Already reviewed this one, here it is:", read that file and post it (step 6). Don't write a new review, and skip step 7.
    - If it fails, reply with the error in one line and stop.
+2. Reply right away in the same channel or DM using the transcript's `ESTIMATE:` line, e.g. "Analyzing the replay (2 games, 214 plays). Estimated time: about 3 minutes." Send this before reading anything else.
 3. Read `review-rules.md` and follow it. Read `context.md` and use it only if the match is the matchup it describes.
 4. Write the review. The transcript says whose side to review from (`REVIEW FROM:`): the player who recorded the replay, whose hand is visible.
 5. Save the review to the path on the transcript's `SAVE REVIEW TO:` line.
 6. Post it with the Discord reply tool, in the same channel or DM. Discord allows 2,000 characters per message, so split at paragraph or bullet boundaries into pieces of at most 1,900 characters, in order. If the reply tool can attach files, also attach the saved review and `reviews/<id>.transcript.txt`.
+7. Run `python3 replay_tool.py "<the link>" --done`. It records how long the review took so future estimates get more accurate. Don't mention it in Discord.
 
 Several links in one message: review each one in turn.
 

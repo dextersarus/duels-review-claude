@@ -2,6 +2,7 @@
 """Fetch a duels.ink replay and print a play-numbered transcript for review.
 
 Usage: python3 replay_tool.py <duels.ink replay link>
+       python3 replay_tool.py <link> --done     (after posting: records how long the review took)
 
 Standard library only. Prints the transcript and saves it to
 reviews/<id>.transcript.txt. If reviews/<id>.md already exists, the first line
@@ -19,6 +20,7 @@ import gzip
 import json
 import re
 import sys
+import time
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -210,6 +212,54 @@ def build_prompt_data(match: Match) -> str:
     return "\n".join(parts)
 
 
+# Timing: until there's history, assume a fixed start-up cost plus a little per play.
+DEFAULT_BASE_S, DEFAULT_PER_PLAY_S = 45.0, 0.75
+TIMINGS = "timings.csv"
+
+
+def estimate_seconds(plays: int, history: list[tuple[int, float]]) -> float:
+    """Median seconds-per-play from past reviews, or the default until there are 3 of them."""
+    rates = sorted(sec / p for p, sec in history if p > 0 and sec > 0)
+    if len(rates) >= 3:
+        return rates[len(rates) // 2] * plays
+    return DEFAULT_BASE_S + DEFAULT_PER_PLAY_S * plays
+
+
+def describe(seconds: float) -> str:
+    minutes = max(1, round(seconds / 60))
+    return "about 1 minute" if minutes == 1 else f"about {minutes} minutes"
+
+
+def _history() -> list[tuple[int, float]]:
+    rows = []
+    try:
+        for line in (REVIEWS / TIMINGS).read_text("utf-8").splitlines()[1:]:
+            _, plays, sec = line.split(",")
+            rows.append((int(plays), float(sec)))
+    except (OSError, ValueError):
+        pass
+    return rows[-50:]
+
+
+def finish(rid: str) -> int:
+    """Record how long a review took (from fetch to now) to improve future estimates."""
+    started = REVIEWS / f"{rid}.started"
+    try:
+        t0, plays = started.read_text("utf-8").split(",")
+    except (OSError, ValueError):
+        print("No start time recorded for this replay.")
+        return 0
+    seconds = time.time() - float(t0)
+    path = REVIEWS / TIMINGS
+    if not path.exists():
+        path.write_text("replay_id,plays,seconds\n", "utf-8")
+    with path.open("a", encoding="utf-8") as f:
+        f.write(f"{rid},{int(plays)},{seconds:.0f}\n")
+    started.unlink(missing_ok=True)
+    print(f"Recorded: {seconds:.0f} seconds for {int(plays)} plays.")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     ids = find_replay_ids(" ".join(argv))
     if not ids:
@@ -217,14 +267,23 @@ def main(argv: list[str]) -> int:
         return 2
     rid = ids[0]
     REVIEWS.mkdir(exist_ok=True)
+    if "--done" in argv:
+        return finish(rid)
     saved = REVIEWS / f"{rid}.md"
     if saved.exists():
         print(f"CACHED REVIEW EXISTS: {saved}")
         return 0
+    t0 = time.time()
     match = fetch_match(rid)
     data = build_prompt_data(match)
+    plays = sum(len(g.data.get("frames", [])) for g in match.games)
+    games = len(match.games)
+    eta = describe(estimate_seconds(plays, _history()))
+    (REVIEWS / f"{rid}.started").write_text(f"{t0},{plays}", "utf-8")
     reviewer = match.player_names.get(str(match.perspective), f"player {match.perspective}")
-    header = (f"REPLAY ID: {rid}\nREVIEW FROM: {reviewer} (recorded this replay; their hand is visible)\n"
+    header = (f"REPLAY ID: {rid}\n"
+              f"ESTIMATE: {eta} ({games} game{'s' if games != 1 else ''}, {plays} plays)\n"
+              f"REVIEW FROM: {reviewer} (recorded this replay; their hand is visible)\n"
               f"SAVE REVIEW TO: {saved}\n\n")
     (REVIEWS / f"{rid}.transcript.txt").write_text(header + data, "utf-8")
     print(header + data)

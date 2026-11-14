@@ -57,6 +57,16 @@ def test_transcript(tmp_path, monkeypatch):
     assert "[4/4] T3 SalamanderBeats: You chose Akood et Emuti" in out
     # main(): writes transcript, then reports cache once a review is saved
     t.main([f"https://duels.ink/replay/{MATCH_ID}"])
-    assert (tmp_path / f"{MATCH_ID}.transcript.txt").read_text().startswith(f"REPLAY ID: {MATCH_ID}\nREVIEW FROM: SalamanderBeats")
+    tr = (tmp_path / f"{MATCH_ID}.transcript.txt").read_text()
+    assert tr.startswith(f"REPLAY ID: {MATCH_ID}\nESTIMATE: about 1 minute (1 game, 4 plays)\nREVIEW FROM: SalamanderBeats")
+    assert t.main([MATCH_ID.join(["https://duels.ink/replay/", ""]), "--done"]) == 0
+    assert (tmp_path / "timings.csv").read_text().splitlines()[1].startswith(f"{MATCH_ID},4,")
     (tmp_path / f"{MATCH_ID}.md").write_text("saved")
     assert t.main([f"https://duels.ink/replay/{MATCH_ID}"]) == 0
+
+
+def test_estimates():
+    assert t.describe(t.estimate_seconds(214, [])) == "about 3 minutes"   # 45 + 0.75*214 = 205s
+    hist = [(100, 120.0), (200, 260.0), (150, 150.0)]                     # 1.2, 1.3, 1.0 s/play
+    assert t.estimate_seconds(214, hist) == 1.2 * 214
+    assert t.describe(20) == "about 1 minute"

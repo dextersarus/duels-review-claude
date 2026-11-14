@@ -84,11 +84,12 @@ Every review counts against your Claude subscription's usage, and a subscription
 - **Stuck on a warning screen:** attach and accept the permissions prompt.
 
 ## Day to day
+- When a link is posted, the bot first replies with an estimate ("about 3 minutes"). It starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
 - Reviews are saved in `/mnt/user/appdata/duels-review-claude/work/reviews/`. Posting the same link again reposts the saved review instead of using your usage on a new one.
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
 - If your Claude login expires, attach and run `/login` again.
 - To change how reviews are written, edit `work/review-rules.md` or `work/context.md` (your matchup notes) and run `docker restart duels-review-claude`.
-- Updating: pull and rebuild as in step 3. Your edited `CLAUDE.md`, rules and notes are kept; `replay_tool.py` is always replaced with the new version. To take a new `CLAUDE.md` from the package, delete the one in `work/` first.
+- Updating: pull and rebuild as in step 3. Your edited `review-rules.md` and `context.md` are kept; `CLAUDE.md` and `replay_tool.py` always come from the new version.
 
 ## Permissions and safety
 Unattended, Claude Code would stop and wait at every permission prompt, so the container runs it with `--dangerously-skip-permissions`. That's reasonable here because:
@@ -99,7 +100,7 @@ Unattended, Claude Code would stop and wait at every permission prompt, so the c
 To get permission prompts back instead, recreate the container with `-e CLAUDE_FLAGS=""` added to the `docker run` command (or uncomment `CLAUDE_FLAGS: ""` in `docker-compose.yml`). The plugin then sends Allow/Deny buttons to your Discord DMs whenever it needs approval.
 
 ## Files
-- `work/CLAUDE.md`: standing instructions for the Discord session.
+- `work/CLAUDE.md`: standing instructions for the Discord session (replaced on every start; edit it in the repo).
 - `work/review-rules.md`: how reviews are written and formatted.
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
 - `work/replay_tool.py`: fetches a replay from duels.ink and prints the play-by-play (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
