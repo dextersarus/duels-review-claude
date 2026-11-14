@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>duels-review-claude</Name>
+  <Repository>ghcr.io/dextersarus/duels-review-claude:latest</Repository>
+  <Registry>https://github.com/dextersarus/duels-review-claude/pkgs/container/duels-review-claude</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/dextersarus/duels-review-claude</Support>
+  <Project>https://github.com/dextersarus/duels-review-claude</Project>
+  <Overview>Claude Code with the Discord plugin, reviewing duels.ink Lorcana replay links posted in Discord. Uses your Claude subscription login. First-time setup: open the container's Console and run: tmux attach -t claude</Overview>
+  <Category>Tools:</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon/>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Claude home (login, plugin, Discord token)" Target="/home/claude" Default="/mnt/user/appdata/duels-review-claude/home" Mode="rw" Description="Keeps the Claude Code install, your Claude login, the Discord plugin and its pairing settings." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/duels-review-claude/home</Config>
+  <Config Name="Work folder (reviews, matchup notes)" Target="/work" Default="/mnt/user/appdata/duels-review-claude/work" Mode="rw" Description="Saved reviews, transcripts, timings and your context.md matchup notes." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/duels-review-claude/work</Config>
+  <Config Name="Claude flags" Target="CLAUDE_FLAGS" Default="--dangerously-skip-permissions" Mode="" Description="Leave as is so the bot runs unattended. Clear it to get Allow/Deny permission buttons in your Discord DMs instead." Type="Variable" Display="advanced" Required="false" Mask="false">--dangerously-skip-permissions</Config>
+</Container>

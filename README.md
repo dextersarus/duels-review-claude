@@ -8,43 +8,50 @@ It uses your Claude Pro or Max login (Claude Code's Discord plugin needs a claud
 1. https://discord.com/developers/applications → **New Application** → name it.
 2. **Bot** tab → **Reset Token** → copy the token. Turn on **Message Content Intent** → Save.
 3. **OAuth2 → URL Generator**: scope `bot`; permissions View Channels, Send Messages, Send Messages in Threads, Read Message History, Attach Files, Add Reactions. Open the URL and add the bot to your server.
-4. In Discord: Settings → Advanced → turn on **Developer Mode**. Right-click the channel you'll post replays in → **Copy Channel ID**. Keep it for step 5.
+4. In Discord: Settings → Advanced → turn on **Developer Mode**. Right-click the channel you'll post replays in → **Copy Channel ID**. Keep it for step 4.
 
-## 2. Get the code onto Unraid
-The repo is private, so cloning needs a GitHub token:
-1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token. Repository access: only `duels-review-claude`. Permissions: **Contents: Read-only**. Copy the token.
-2. In the Unraid terminal (replace `YOUR_TOKEN`). This uses a throwaway git container, so it works whether or not Unraid has git installed:
+## 2. Add the container in Unraid
+GitHub builds the image automatically on every push to `main` and publishes it to `ghcr.io/dextersarus/duels-review-claude:latest` (Actions tab → "Build and publish image").
+
+The image comes from a private repo, so Unraid can't pull it until you either:
+- **make the package public** (simplest; the image holds no secrets, since your login and tokens live in your appdata folders): GitHub → your profile → **Packages** → `duels-review-claude` → **Package settings** → **Change visibility** → Public, or
+- **log Unraid in to ghcr.io**: create a classic token with only `read:packages`, then in the Unraid terminal run `docker login ghcr.io -u dextersarus` and paste the token as the password.
+
+Then in the Unraid terminal:
+
+```bash
+mkdir -p /mnt/user/appdata/duels-review-claude/home /mnt/user/appdata/duels-review-claude/work
+chown -R 99:100 /mnt/user/appdata/duels-review-claude
+curl -fsSL -o /boot/config/plugins/dockerMan/templates-user/my-duels-review-claude.xml \
+  https://raw.githubusercontent.com/dextersarus/duels-review-claude/main/unraid/duels-review-claude.xml
+```
+
+That last command only works once the repo is public. Otherwise, open `unraid/duels-review-claude.xml` on GitHub, copy its contents, and save it to `/boot/config/plugins/dockerMan/templates-user/my-duels-review-claude.xml` (e.g. `nano` in the terminal).
+
+In Unraid: **Docker** tab → **Add Container** → **Template** → pick **duels-review-claude** under User templates → **Apply**.
+
+The first start installs Claude Code and Bun into the home folder (a minute or two; click the container icon → **Logs** to watch).
+
+Already running it from an earlier `docker run`? Stop and remove that container first (`docker stop duels-review-claude && docker rm duels-review-claude`), then add it from the template with the same folders. Your login, pairing and reviews are kept.
+
+**Updating:** after I push changes, wait for the GitHub build to finish (a green check on the commit), then in the Docker tab click **Check for Updates** → **apply update** on the container.
+
+<details><summary>Alternative: build it yourself on Unraid</summary>
 
 ```bash
 mkdir -p /mnt/user/appdata/duels-review-claude && cd /mnt/user/appdata/duels-review-claude
 docker run --rm -v "$PWD":/git alpine/git clone https://x-access-token:YOUR_TOKEN@github.com/dextersarus/duels-review-claude.git src
-mkdir -p home work && chown -R 99:100 home work
-```
-
-To update later: `docker run --rm -v /mnt/user/appdata/duels-review-claude/src:/git alpine/git pull`, then rebuild (next step).
-
-## 3. Build and start the container
-
-```bash
-docker build -t duels-review-claude /mnt/user/appdata/duels-review-claude/src
+docker build -t duels-review-claude src
 docker run -d --name duels-review-claude --restart unless-stopped \
   -v /mnt/user/appdata/duels-review-claude/home:/home/claude \
   -v /mnt/user/appdata/duels-review-claude/work:/work \
   duels-review-claude
 ```
+`YOUR_TOKEN` is a fine-grained token with Contents: Read-only on this repo.
+</details>
 
-With the Compose Manager plugin you can instead run `docker compose up -d --build` in the `src` folder.
-
-To rebuild after an update: `docker stop duels-review-claude && docker rm duels-review-claude`, then run both commands above again. Your login and reviews are kept in the `home` and `work` folders.
-
-The first start installs Claude Code and Bun into the persistent home folder (a minute or two; watch with `docker logs -f duels-review-claude`).
-
-## 4. One-time setup inside Claude Code
-Attach to the session:
-
-```bash
-docker exec -it duels-review-claude tmux attach -t claude
-```
+## 3. One-time setup inside Claude Code
+Attach to the session: in the Docker tab click the container icon → **Console**, then run `tmux attach -t claude`. (From the Unraid terminal instead: `docker exec -it duels-review-claude tmux attach -t claude`.)
 
 Then, in Claude Code:
 1. Trust the `/work` folder when asked.
@@ -63,7 +70,7 @@ Then, in Claude Code:
    docker restart duels-review-claude
    ```
 
-## 5. Pair the two of you and open the channel
+## 4. Pair the two of you and open the channel
 Attach again (`docker exec -it duels-review-claude tmux attach -t claude`). If Claude Code asks you to confirm skipping permission prompts, accept.
 
 1. Each of you DMs the bot. It replies with a pairing code. For each code, type in Claude Code: `/discord:access pair CODE`
@@ -88,8 +95,8 @@ Every review counts against your Claude subscription's usage, and a subscription
 - Reviews are saved in `/mnt/user/appdata/duels-review-claude/work/reviews/`. Posting the same link again reposts the saved review instead of using your usage on a new one.
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
 - If your Claude login expires, attach and run `/login` again.
-- To change how reviews are written, edit `work/review-rules.md` or `work/context.md` (your matchup notes) and run `docker restart duels-review-claude`.
-- Updating: pull and rebuild as in step 3. Your edited `review-rules.md` and `context.md` are kept; `CLAUDE.md` and `replay_tool.py` always come from the new version.
+- To change how reviews are written, edit `work/review-rules.md` in the repo (it's replaced on every start). Your matchup notes in `work/context.md` on the server are yours to edit; restart the container afterwards.
+- Updating: Docker tab → Check for Updates (see step 2). Your `context.md` is kept; `CLAUDE.md`, `review-rules.md` and `replay_tool.py` always come from the new version, so edit those in the repo.
 
 ## Permissions and safety
 Unattended, Claude Code would stop and wait at every permission prompt, so the container runs it with `--dangerously-skip-permissions`. That's reasonable here because:
@@ -97,10 +104,12 @@ Unattended, Claude Code would stop and wait at every permission prompt, so the c
 - only the two paired Discord accounts can talk to it (`policy allowlist`),
 - `CLAUDE.md` limits it to running `replay_tool.py` and writing reviews, and `.claude/settings.json` adds deny rules for your Claude login, web requests and its own instruction files.
 
-To get permission prompts back instead, recreate the container with `-e CLAUDE_FLAGS=""` added to the `docker run` command (or uncomment `CLAUDE_FLAGS: ""` in `docker-compose.yml`). The plugin then sends Allow/Deny buttons to your Discord DMs whenever it needs approval.
+To get permission prompts back instead, edit the container in the Docker tab, open **Show more settings**, and clear **Claude flags**. The plugin then sends Allow/Deny buttons to your Discord DMs whenever it needs approval.
 
 ## Files
 - `work/CLAUDE.md`: standing instructions for the Discord session (replaced on every start; edit it in the repo).
-- `work/review-rules.md`: how reviews are written and formatted.
+- `work/review-rules.md`: the champion-level review method and format (replaced on every start; edit it in the repo).
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
-- `work/replay_tool.py`: fetches a replay from duels.ink and prints the play-by-play (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
+- `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
+- `unraid/duels-review-claude.xml`: Unraid container template.
+- `.github/workflows/docker-publish.yml`: runs the tests and publishes the image to ghcr.io.

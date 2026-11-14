@@ -7,9 +7,9 @@ set -u
 # Seed the workspace on first start; never overwrite files you've edited.
 mkdir -p /work/reviews
 cp -rn /opt/work-default/. /work/ 2>/dev/null || true
-# The bot's instructions and the replay tool come from the image: always take the latest.
-# (review-rules.md and context.md are yours to edit and are never overwritten.)
-cp -f /opt/work-default/replay_tool.py /opt/work-default/CLAUDE.md /work/
+# The bot's instructions, review method and replay tool come from the image: always take the latest.
+# (context.md, your matchup notes, is yours to edit and is never overwritten.)
+cp -f /opt/work-default/replay_tool.py /opt/work-default/CLAUDE.md /opt/work-default/review-rules.md /work/
 
 # Claude Code and Bun live in the persistent home folder; install them once.
 if ! command -v bun >/dev/null 2>&1; then

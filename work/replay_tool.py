@@ -62,6 +62,7 @@ class Game:
     data: dict
     winner: int | None = None
     victory_reason: str | None = None
+    win_prob: list | None = None   # duels.ink engine estimate; index k = after play k
 
 
 @dataclass
@@ -74,19 +75,30 @@ class Match:
     games: list[Game] = field(default_factory=list)
 
 
-def fetch_match(replay_id: str, fetch=None) -> Match:
+def fetch_win_prob(game_replay_id: str) -> list | None:
+    """duels.ink's per-play win probability for the perspective player, or None if unavailable."""
+    try:
+        ev = fetch_json(f"{game_replay_id}?format=eval")
+    except Exception:
+        return None
+    wp = ev.get("winProb") if ev.get("available", True) else None
+    return wp if isinstance(wp, list) else None
+
+
+def fetch_match(replay_id: str, fetch=None, fetch_eval=None) -> Match:
     fetch = fetch or fetch_json
+    fetch_eval = fetch_eval or fetch_win_prob
     root = fetch(replay_id)
     if root.get("format") == "duels-match-replay-v1":
         match = Match(replay_id, root.get("playerNames", {}), root.get("perspective", 1),
                       root.get("matchWinner"), root.get("matchFormat"))
         for g in root.get("games", []):
             match.games.append(Game(g.get("gameNumber", len(match.games) + 1), fetch(g["replayId"]),
-                                    g.get("winner"), g.get("victoryReason")))
+                                    g.get("winner"), g.get("victoryReason"), fetch_eval(g["replayId"])))
     elif root.get("format") == "duels-replay-v1":
         match = Match(replay_id, root.get("playerNames", {}), root.get("perspective", 1),
                       root.get("winner"), "single game")
-        match.games.append(Game(1, root, root.get("winner"), root.get("victoryReason")))
+        match.games.append(Game(1, root, root.get("winner"), root.get("victoryReason"), fetch_eval(replay_id)))
     else:
         raise ValueError(f"Unrecognised replay format: {root.get('format')!r}")
     return match
@@ -176,6 +188,10 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
         "",
     ]
 
+    swings = _swings(game.win_prob, total)
+    marked: set[int] = set()
+    first_text: dict[int, str] = {}
+    swing_at = len(lines)
     last_play_with_reveal = set()
     for i, log in enumerate(logs):
         if log.get("type") in NOISE:
@@ -188,8 +204,38 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
                 lines.append(f"[{play}/{total}] REVEALED OPPONENT HAND: {', '.join(rev)}")
                 last_play_with_reveal.add(play)
         who = names.get(str(log.get("player")), "")
-        lines.append(f"[{play}/{total}] T{log.get('turnNumber')} {who}: {_render(log, names)}".rstrip())
+        text = f"T{log.get('turnNumber')} {who}: {_render(log, names)}".rstrip()
+        first_text.setdefault(play, text)
+        line = f"[{play}/{total}] {text}"
+        if play in swings and play not in marked:
+            before, after_p = swings[play]
+            line += f"   <<win% {before:.0f} -> {after_p:.0f}>>"
+            marked.add(play)
+        lines.append(line)
+    if swings:
+        top = sorted(swings.items(), key=lambda kv: -abs(kv[1][1] - kv[1][0]))[:8]
+        block = [f"WIN PROBABILITY SWINGS for {me} (duels.ink engine estimate after each play; "
+                 f"a pointer to moments worth checking, not proof; it doesn't know about concessions):"]
+        for play, (b, a) in sorted(top):
+            block.append(f"- [{play}/{total}] {b:.0f}% -> {a:.0f}% ({a - b:+.0f}): {first_text.get(play, '')}")
+        lines[swing_at:swing_at] = block + [""]
     return "\n".join(lines)
+
+
+def _swings(win_prob: list | None, total: int, threshold: float = 0.12) -> dict[int, tuple[float, float]]:
+    """play -> (win% before, win% after) for plays that moved the estimate by >= threshold."""
+    out: dict[int, tuple[float, float]] = {}
+    if not win_prob:
+        return out
+    prev = None
+    for k in range(min(len(win_prob), total + 1)):
+        p = win_prob[k]
+        if p is None:
+            continue
+        if prev is not None and k >= 1 and abs(p - prev) >= threshold:
+            out[k] = (prev * 100, p * 100)
+        prev = p
+    return out
 
 
 def build_prompt_data(match: Match) -> str:

@@ -48,13 +48,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "work"))
 import replay_tool as t
 
+EVAL = {"available": True, "perspective": 2, "winProb": [None, 0.5, 0.52, 0.6, 0.2]}
+
+
 def test_transcript(tmp_path, monkeypatch):
     monkeypatch.setattr(t, "REVIEWS", tmp_path)
-    monkeypatch.setattr(t, "fetch_json", lambda rid: t.decode(gz({MATCH_ID: MANIFEST, GAME_ID: GAME}[rid])))
+    monkeypatch.setattr(t, "fetch_json", lambda rid: t.decode(gz(EVAL if rid.endswith("?format=eval") else {MATCH_ID: MANIFEST, GAME_ID: GAME}[rid])))
     m = t.fetch_match(MATCH_ID, t.fetch_json)
     out = t.build_prompt_data(m)
     assert "[3/4] REVEALED OPPONENT HAND: Akood et Emuti, Akood et Emuti" in out
-    assert "[4/4] T3 SalamanderBeats: You chose Akood et Emuti" in out
+    assert "[4/4] T3 SalamanderBeats: You chose Akood et Emuti   <<win% 60 -> 20>>" in out
+    assert "- [4/4] 60% -> 20% (-40): T3 SalamanderBeats: You chose Akood et Emuti" in out
+    assert "[3/4]" in out and "<<win% 52" not in out   # +8 is below the 12-point threshold
     # main(): writes transcript, then reports cache once a review is saved
     t.main([f"https://duels.ink/replay/{MATCH_ID}"])
     tr = (tmp_path / f"{MATCH_ID}.transcript.txt").read_text()
@@ -70,3 +75,13 @@ def test_estimates():
     hist = [(100, 120.0), (200, 260.0), (150, 150.0)]                     # 1.2, 1.3, 1.0 s/play
     assert t.estimate_seconds(214, hist) == 1.2 * 214
     assert t.describe(20) == "about 1 minute"
+
+
+def test_eval_missing_is_fine(monkeypatch):
+    def boom(rid):
+        if rid.endswith("?format=eval"):
+            raise OSError("down")
+        return t.decode(gz({MATCH_ID: MANIFEST, GAME_ID: GAME}[rid]))
+    monkeypatch.setattr(t, "fetch_json", boom)
+    out = t.build_prompt_data(t.fetch_match(MATCH_ID))
+    assert "WIN PROBABILITY" not in out and "[4/4]" in out
