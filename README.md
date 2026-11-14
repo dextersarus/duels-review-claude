@@ -87,7 +87,7 @@ Unattended, Claude Code would stop and wait at every permission prompt, so the c
 - only the two paired Discord accounts can talk to it (`policy allowlist`),
 - `CLAUDE.md` limits it to running `replay_tool.py` and writing reviews, and `.claude/settings.json` adds deny rules for your Claude login, web requests and its own instruction files.
 
-To get permission prompts back instead, uncomment `CLAUDE_FLAGS: ""` in `docker-compose.yml` and rebuild. The plugin then sends Allow/Deny buttons to your Discord DMs whenever it needs approval.
+To get permission prompts back instead, recreate the container with `-e CLAUDE_FLAGS=""` added to the `docker run` command (or uncomment `CLAUDE_FLAGS: ""` in `docker-compose.yml`). The plugin then sends Allow/Deny buttons to your Discord DMs whenever it needs approval.
 
 ## Files
 - `work/CLAUDE.md`: standing instructions for the Discord session.
