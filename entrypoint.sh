@@ -9,7 +9,8 @@ mkdir -p /work/reviews
 cp -rn /opt/work-default/. /work/ 2>/dev/null || true
 # The bot's instructions, review method and replay tool come from the image: always take the latest.
 # (context.md, your matchup notes, is yours to edit and is never overwritten.)
-cp -f /opt/work-default/replay_tool.py /opt/work-default/CLAUDE.md /opt/work-default/review-rules.md /work/
+cp -f /opt/work-default/replay_tool.py /opt/work-default/discord_tool.py /opt/work-default/CLAUDE.md /opt/work-default/review-rules.md /work/
+mkdir -p /work/.claude && cp -f /opt/work-default/.claude/settings.json /work/.claude/settings.json
 
 # Claude Code and Bun live in the persistent home folder; install them once.
 if ! command -v bun >/dev/null 2>&1; then

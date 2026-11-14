@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(python3 replay_tool.py:*)",
+      "Bash(python3 discord_tool.py delete:*)",
       "Read(./**)",
       "Edit(./reviews/**)"
     ],
@@ -12,6 +13,7 @@
       "Edit(./review-rules.md)",
       "Edit(./context.md)",
       "Edit(./replay_tool.py)",
+      "Edit(./discord_tool.py)",
       "Edit(./.claude/**)",
       "Bash(curl:*)",
       "Bash(wget:*)",

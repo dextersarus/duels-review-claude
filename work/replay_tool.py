@@ -150,6 +150,106 @@ def _reveals(frame: dict) -> list[str]:
     return out
 
 
+def _apply(doc, patch: dict) -> None:
+    """Apply one JSON-patch operation (add / remove / replace) in place."""
+    parts = [x.replace("~1", "/").replace("~0", "~") for x in patch.get("path", "").split("/")[1:]]
+    if not parts:
+        return
+    obj = doc
+    for key in parts[:-1]:
+        if isinstance(obj, list):
+            obj = obj[int(key)]
+        else:
+            obj = obj.setdefault(key, {})
+    last, op = parts[-1], patch.get("op")
+    if isinstance(obj, list):
+        idx = len(obj) if last == "-" else int(last)
+        if op == "add":
+            obj.insert(idx, patch.get("value"))
+        elif op == "remove":
+            if idx < len(obj):
+                obj.pop(idx)
+        elif idx < len(obj):
+            obj[idx] = patch.get("value")
+        else:
+            obj.append(patch.get("value"))
+    elif op == "remove":
+        obj.pop(last, None)
+    else:
+        obj[last] = patch.get("value")
+
+
+def _board(cards: list | None) -> str:
+    out = []
+    for c in cards or []:
+        if not isinstance(c, dict):
+            continue
+        tags = []
+        if c.get("damage"):
+            tags.append(f"dmg {c['damage']}")
+        if c.get("exerted"):
+            tags.append("exerted")
+        stats = (f" {c.get('strength')}/{c.get('willpower')} L{c.get('lore')}"
+                 if c.get("type") == "character" else "")
+        out.append(f"{c.get('fullName', '?')}{stats}" + (f" [{', '.join(tags)}]" if tags else ""))
+    return "; ".join(out) or "none"
+
+
+def _ink(inkwell: list | None, drops) -> str:
+    inkwell = inkwell or []
+    ready = sum(1 for x in inkwell if isinstance(x, dict)
+                and not (x.get("exerted") or (x.get("card") or {}).get("exerted")))
+    extra = f" + {drops} ink drop{'s' if drops != 1 else ''}" if drops else ""
+    return f"{len(inkwell)} ink ({ready} ready){extra}"
+
+
+def _names(cards: list | None) -> str:
+    return ", ".join(c.get("fullName", "?") for c in cards or [] if isinstance(c, dict)) or "none"
+
+
+def _snapshot(state: dict, me: str, opp: str, label: str) -> str:
+    m, o = state.get("myPlayer", {}), state.get("opponent", {})
+    hand = m.get("hand") or []
+    lines = [
+        f"=== {label} ===",
+        f"  {me}: hand ({len(hand)}): {_names(hand)} | {_ink(m.get('inkwell'), m.get('inkDrops'))} | lore {m.get('lore', 0)} | deck {m.get('deckCount', '?')}",
+        f"  {me} board: {_board(m.get('field'))}" + (f" | items: {_names(m.get('items'))}" if m.get("items") else ""),
+        f"  {me} discard: {_names(m.get('discard'))}",
+        f"  {opp}: hand {o.get('handCount', '?')} cards (hidden) | {_ink(o.get('inkwell'), o.get('inkDrops'))} | lore {o.get('lore', 0)} | deck {o.get('deckCount', '?')}",
+        f"  {opp} board: {_board(o.get('field'))}" + (f" | items: {_names(o.get('items'))}" if o.get("items") else ""),
+        f"  {opp} discard: {_names(o.get('discard'))}",
+    ]
+    return "\n".join(lines)
+
+
+def turn_snapshots(game: "Game", names: dict[str, str], perspective: int, first_player) -> dict[int, str]:
+    """play number -> board snapshot taken after that play, at the start of each turn."""
+    data = game.data
+    frames = data.get("frames", [])
+    me = names.get(str(perspective), f"Player {perspective}")
+    opp = names.get(str(3 - perspective), f"Player {3 - perspective}")
+    state = json.loads(json.dumps(data.get("baseSnapshot", {})))
+    setup = {"CHOOSE_STARTING_PLAYER", "MULLIGAN"}
+    last_setup = max((k for k, f in enumerate(frames) if f.get("actionType") in setup), default=-1)
+    out: dict[int, str] = {}
+    for k, f in enumerate(frames):
+        for p in f.get("patch", []):
+            try:
+                _apply(state, p)
+            except (IndexError, KeyError, ValueError, TypeError, AttributeError):
+                pass  # a malformed patch shouldn't stop the transcript
+        nxt = None
+        if f.get("actionType") == "END_TURN" and f.get("player") in (1, 2):
+            nxt, turn = 3 - f["player"], f.get("turnNumber")
+        elif k == last_setup and first_player in (1, 2):
+            nxt, turn = first_player, 1
+        if nxt:
+            who = names.get(str(nxt), f"Player {nxt}")
+            label = f"TURN START: {who}'s turn T{turn} (state after their draw; what {me} could see)"
+            out[k + 1] = _snapshot(state, me, opp, label)
+    return out
+
+
 def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
     data = game.data
     frames = data.get("frames", [])
@@ -185,9 +285,12 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
         f"On the play: {names.get(str(first_player), first_player)}.",
         f'Log perspective: "You" = {me} (player {perspective}), "Opponent" = {opp}. '
         f"{opp}'s hand and draws are hidden unless revealed.",
+        f"=== TURN START === blocks show the board at the start of each turn: exactly what {me} could see then.",
         "",
     ]
 
+    snaps = turn_snapshots(game, names, perspective, first_player)
+    pending = sorted(snaps)
     swings = _swings(game.win_prob, total)
     marked: set[int] = set()
     first_text: dict[int, str] = {}
@@ -197,6 +300,8 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
         if log.get("type") in NOISE:
             continue
         play = play_of(i)
+        while pending and pending[0] < play:
+            lines.append(snaps[pending.pop(0)])
         frame = frames[play - 1] if 0 < play <= total else {}
         if play not in last_play_with_reveal:
             rev = _reveals(frame)
@@ -212,6 +317,8 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
             line += f"   <<win% {before:.0f} -> {after_p:.0f}>>"
             marked.add(play)
         lines.append(line)
+    for k in pending:
+        lines.append(snaps[k])
     if swings:
         top = sorted(swings.items(), key=lambda kv: -abs(kv[1][1] - kv[1][0]))[:8]
         block = [f"WIN PROBABILITY SWINGS for {me} (duels.ink engine estimate after each play; "

@@ -98,7 +98,9 @@ When the limit is hit you'll get one message like "Claude usage limit reached. R
 - **Stuck on a warning screen:** attach and accept the permissions prompt.
 
 ## Day to day
-- When a link is posted, the bot first replies with an estimate ("about 3 minutes"). It starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
+- When a link is posted, the bot posts an estimate, then replies to your message with the review and pings you. It deletes the estimate message and reacts ✅ on your message (❌ with a one-line reason if something failed). The plugin has no delete action, so `work/discord_tool.py` deletes the estimate through Discord's API using the bot token the plugin already stores; it only deletes the bot's own messages.
+- The estimate ("about 3 minutes") It starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
+- To re-run an old review with the latest rules, delete its file from `work/reviews/` (the `.md`) and post the link again.
 - Reviews are saved in `/mnt/user/appdata/duels-review-claude/work/reviews/`. Posting the same link again reposts the saved review instead of using your usage on a new one.
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
 - If your Claude login expires, attach and run `/login` again.
@@ -117,7 +119,8 @@ To get permission prompts back instead, edit the container in the Docker tab, op
 - `work/CLAUDE.md`: standing instructions for the Discord session (replaced on every start; edit it in the repo).
 - `work/review-rules.md`: the champion-level review method and format (replaced on every start; edit it in the repo).
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
-- `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
+- `work/discord_tool.py`: deletes the bot's own estimate message (the plugin can't delete).
+- `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked and a board snapshot at the start of every turn (what the recording player could see then) (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
 - `unraid/duels-review-claude.xml`: Unraid container template.
 - `watch_limits.py`: posts the usage-limit alert to your Discord webhook.
 - `.github/workflows/docker-publish.yml`: runs the tests and publishes the image to ghcr.io.

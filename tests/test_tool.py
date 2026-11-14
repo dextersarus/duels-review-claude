@@ -85,3 +85,58 @@ def test_eval_missing_is_fine(monkeypatch):
     monkeypatch.setattr(t, "fetch_json", boom)
     out = t.build_prompt_data(t.fetch_match(MATCH_ID))
     assert "WIN PROBABILITY" not in out and "[4/4]" in out
+
+
+def test_turn_start_snapshots():
+    base = {
+        "myPlayer": {"hand": [{"fullName": "Aurora - Holding Court"}], "field": [], "inkwell": [],
+                     "discard": [], "lore": 0, "inkDrops": 0, "deckCount": 53},
+        "opponent": {"handCount": 7, "field": [], "inkwell": [], "discard": [], "lore": 0,
+                     "inkDrops": 0, "deckCount": 53},
+    }
+    chern = {"fullName": "Chernabog - Unnatural Force", "type": "character", "strength": 5,
+             "willpower": 4, "lore": 2, "exerted": True, "damage": 1, "justPlayed": True}
+    game = {
+        "format": "duels-replay-v1", "perspective": 2, "winner": 1, "victoryReason": "concession",
+        "playerNames": {"1": "Alber0", "2": "SalamanderBeats"},
+        "baseSnapshot": base,
+        "frames": [
+            {"actionType": "CHOOSE_STARTING_PLAYER", "player": 1, "turnNumber": 1, "logCountAfter": 1,
+             "patch": [{"op": "replace", "path": "/firstPlayer", "value": 1}]},
+            {"actionType": "PLAY_CARD", "player": 1, "turnNumber": 1, "logCountAfter": 2,
+             "patch": [{"op": "add", "path": "/opponent/field/0", "value": chern},
+                       {"op": "replace", "path": "/opponent/handCount", "value": 6},
+                       {"op": "add", "path": "/opponent/inkwell/0", "value": {"hidden": True, "exerted": True}}]},
+            {"actionType": "END_TURN", "player": 1, "turnNumber": 1, "logCountAfter": 3,
+             "patch": [{"op": "add", "path": "/myPlayer/hand/1", "value": {"fullName": "Pluto - Friendly Pooch"}},
+                       {"op": "add", "path": "/myPlayer/inkwell/0", "value": {"exerted": False}},
+                       {"op": "replace", "path": "/myPlayer/inkDrops", "value": 1}]},
+            {"actionType": "QUEST", "player": 2, "turnNumber": 1, "logCountAfter": 4, "patch": []},
+        ],
+        "logs": [
+            {"turnNumber": 1, "player": None, "type": "GAME_START", "message": "Game started!"},
+            {"turnNumber": 1, "player": 1, "type": "CARD_PLAYED", "message": "Opponent played Chernabog"},
+            {"turnNumber": 1, "player": 2, "type": "CARD_DRAWN", "message": "You drew Pluto"},
+            {"turnNumber": 1, "player": 2, "type": "CARD_QUEST", "message": "You quested"},
+        ],
+    }
+    match = t.Match("x" * 36, game["playerNames"], 2, 1, "single game", [t.Game(1, game, 1, "concession")])
+    out = t.build_prompt_data(match)
+    print(out)
+    start = out.index("=== TURN START: Alber0's turn T1")
+    second = out.index("=== TURN START: SalamanderBeats's turn T1")
+    assert start < out.index("Opponent played Chernabog") < out.index("You drew Pluto") < second < out.index("You quested")
+    snap = out[second:out.index("You quested")]
+    assert "SalamanderBeats: hand (2): Aurora - Holding Court, Pluto - Friendly Pooch | 1 ink (1 ready) + 1 ink drop" in snap
+    assert "Alber0: hand 6 cards (hidden) | 1 ink (0 ready)" in snap
+    assert "Chernabog - Unnatural Force 5/4 L2 [dmg 1, exerted]" in snap
+    assert "drying" not in snap
+
+
+def test_apply_patch_ops():
+    doc = {"a": [1, 2, 3], "b": {"c": 1}}
+    t._apply(doc, {"op": "remove", "path": "/a/1"})
+    t._apply(doc, {"op": "add", "path": "/a/-", "value": 9})
+    t._apply(doc, {"op": "replace", "path": "/b/c", "value": 2})
+    t._apply(doc, {"op": "add", "path": "/b/d~1e", "value": True})
+    assert doc == {"a": [1, 3, 9], "b": {"c": 2, "d/e": True}}
