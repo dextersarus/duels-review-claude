@@ -86,6 +86,13 @@ DMs need pairing, but a server channel has its own access list. A channel added 
 
 Every review counts against your Claude subscription's usage, and a subscription is meant for personal use, so keep this to a small group.
 
+## Usage-limit alerts (optional)
+When your Claude usage limit is hit, the bot can't post anything itself, so a small watcher in the container does it through a Discord webhook:
+1. In Discord: **Server Settings → Integrations → Webhooks → New Webhook**. Pick your replay channel, name it (e.g. "Replay Coach status"), give it the bot's icon if you like, then **Copy Webhook URL**.
+2. In Unraid: Docker tab → click the container → **Edit** → paste it into **Discord webhook URL** → **Apply**.
+
+When the limit is hit you'll get one message like "Claude usage limit reached. Replay reviews are paused. It resets **9pm**." Repost any link that didn't get its review once it resets. Treat the webhook URL like a password: anyone with it can post in that channel.
+
 ## Troubleshooting
 - **Bot shows offline / red X next to Discord in `/mcp`:** the plugin's connector failed to start. The container installs its dependencies on start, so run `docker restart duels-review-claude` first. If it's still red, select it in `/mcp` and press Enter to see the error. "Invalid token" means re-run `/discord:configure`; "disallowed intents" means turn on Message Content Intent.
 - **Stuck on a warning screen:** attach and accept the permissions prompt.
@@ -112,4 +119,5 @@ To get permission prompts back instead, edit the container in the Docker tab, op
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
 - `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
 - `unraid/duels-review-claude.xml`: Unraid container template.
+- `watch_limits.py`: posts the usage-limit alert to your Discord webhook.
 - `.github/workflows/docker-publish.yml`: runs the tests and publishes the image to ghcr.io.

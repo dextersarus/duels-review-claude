@@ -11,7 +11,8 @@ RUN useradd -m -u 99 -g 100 -s /bin/bash claude
 # Default workspace (CLAUDE.md, review rules, replay tool). Copied into /work on first start.
 COPY work /opt/work-default
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh && chown -R 99:100 /opt/work-default
+COPY watch_limits.py /usr/local/bin/watch_limits.py
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/watch_limits.py && chown -R 99:100 /opt/work-default
 
 ENV HOME=/home/claude \
     PATH=/home/claude/.local/bin:/home/claude/.bun/bin:/usr/local/bin:/usr/bin:/bin \

@@ -39,5 +39,10 @@ tmux kill-session -t claude 2>/dev/null || true
 tmux new-session -d -s claude -c /work \
   "while true; do $CMD; echo 'Claude Code exited. Restarting in 10 seconds (Ctrl-C to stop)…'; sleep 10; done"
 
+# Post to Discord when the Claude usage limit is hit (needs DISCORD_WEBHOOK_URL).
+if [ -n "${DISCORD_WEBHOOK_URL:-}" ] && [ -f "$HOME/.duels-setup-done" ]; then
+  python3 /usr/local/bin/watch_limits.py &
+fi
+
 # Keep the container alive as long as the tmux session exists.
 while tmux has-session -t claude 2>/dev/null; do sleep 30; done
