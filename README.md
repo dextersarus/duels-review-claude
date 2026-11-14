@@ -99,7 +99,7 @@ When the limit is hit you'll get one message like "Claude usage limit reached. R
 
 ## Day to day
 - When a link is posted, the bot posts an estimate, then replies to your message with the review and pings you. It deletes the estimate message and reacts ✅ on your message (❌ with a one-line reason if something failed). The plugin has no delete action, so `work/discord_tool.py` deletes the estimate through Discord's API using the bot token the plugin already stores; it only deletes the bot's own messages.
-- The estimate ("about 3 minutes") It starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
+- The estimate ("about 3 minutes") starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
 - To re-run an old review with the latest rules, delete its file from `work/reviews/` (the `.md`) and post the link again.
 - Reviews are saved in `/mnt/user/appdata/duels-review-claude/work/reviews/`. Posting the same link again reposts the saved review instead of using your usage on a new one.
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
