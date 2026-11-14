@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 replay_tool.py:*)",
+      "Read(./**)",
+      "Edit(./reviews/**)"
+    ],
+    "deny": [
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.claude.json)",
+      "Edit(./CLAUDE.md)",
+      "Edit(./review-rules.md)",
+      "Edit(./context.md)",
+      "Edit(./replay_tool.py)",
+      "Edit(./.claude/**)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}

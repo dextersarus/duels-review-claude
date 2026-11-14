@@ -1,0 +1,12 @@
+services:
+  duels-review-claude:
+    build: .
+    image: duels-review-claude:latest
+    container_name: duels-review-claude
+    restart: unless-stopped
+    # environment:
+    #   CLAUDE_FLAGS: ""   # uncomment to turn permission prompts back on (approve them via Discord DM buttons)
+    volumes:
+      # Unraid appdata locations; change if you keep appdata elsewhere.
+      - /mnt/user/appdata/duels-review-claude/home:/home/claude
+      - /mnt/user/appdata/duels-review-claude/work:/work

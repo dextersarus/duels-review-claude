@@ -1,0 +1,7 @@
+# Generated reviews and transcripts stay on the server
+work/reviews/*
+!work/reviews/.keep
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
