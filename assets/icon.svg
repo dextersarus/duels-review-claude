@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#3a2f86"/>
+      <stop offset="0.6" stop-color="#1e1a52"/>
+      <stop offset="1" stop-color="#0e0c2b"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.5" stop-color="#e8b04a"/>
+      <stop offset="1" stop-color="#b9792a"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbf5e6"/>
+      <stop offset="1" stop-color="#eadbb8"/>
+    </linearGradient>
+    <radialGradient id="lens" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#9fd8ff" stop-opacity="0.12"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- faint ring so it frames well inside Discord's circle crop -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#e8b04a" stroke-opacity="0.18" stroke-width="6"/>
+
+  <!-- card -->
+  <g transform="rotate(-9 230 238)" filter="url(#shadow)">
+    <rect x="130" y="96" width="200" height="284" rx="24" fill="url(#card)" stroke="url(#gold)" stroke-width="9"/>
+    <rect x="148" y="114" width="164" height="248" rx="14" fill="none" stroke="#c9a25a" stroke-opacity="0.55" stroke-width="3"/>
+    <!-- win-probability line with a swing -->
+    <polyline points="162,300 198,262 228,280 258,196 296,214"
+              fill="none" stroke="#1f9e8f" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="258" cy="196" r="13" fill="#e8b04a" stroke="#fbf5e6" stroke-width="5"/>
+    <!-- baseline ticks -->
+    <line x1="162" y1="330" x2="298" y2="330" stroke="#c9a25a" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- magnifying glass -->
+  <g filter="url(#shadow)">
+    <line x1="370" y1="368" x2="420" y2="418" stroke="#5a3a12" stroke-width="42" stroke-linecap="round"/>
+    <line x1="370" y1="368" x2="420" y2="418" stroke="url(#gold)" stroke-width="30" stroke-linecap="round"/>
+    <circle cx="314" cy="312" r="84" fill="url(#lens)" stroke="url(#gold)" stroke-width="22"/>
+    <path d="M268 282 A56 56 0 0 1 306 258" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- sparkle -->
+  <path d="M402 104 L412 132 L440 142 L412 152 L402 180 L392 152 L364 142 L392 132 Z" fill="url(#gold)"/>
+  <path d="M110 392 L116 408 L132 414 L116 420 L110 436 L104 420 L88 414 L104 408 Z" fill="#ffe08a" fill-opacity="0.8"/>
+</svg>
