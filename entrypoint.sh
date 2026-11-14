@@ -18,6 +18,14 @@ if ! command -v claude >/dev/null 2>&1; then
   echo "Installing Claude Code…"; curl -fsSL https://claude.ai/install.sh | bash
 fi
 
+# The Discord plugin's connector needs its Bun dependencies; without them /mcp shows a red X.
+for d in "$HOME"/.claude/plugins/cache/claude-plugins-official/discord/*/; do
+  if [ -f "$d/package.json" ] && [ ! -d "$d/node_modules" ]; then
+    echo "Installing Discord plugin dependencies in $d…"
+    (cd "$d" && bun install --no-summary) || echo "bun install failed in $d"
+  fi
+done
+
 if [ -f "$HOME/.duels-setup-done" ]; then
   CMD="claude ${CLAUDE_FLAGS---dangerously-skip-permissions} --channels plugin:discord@claude-plugins-official"
   echo "Normal mode: $CMD"

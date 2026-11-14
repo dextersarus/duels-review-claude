@@ -74,6 +74,15 @@ Attach again (`docker exec -it duels-review-claude tmux attach -t claude`). If C
 
 Test it: post `@YourBot https://duels.ink/replay/01a1cc4f-fbdf-7e6e-bacc-fde2b926f080` in the channel, or DM it the link.
 
+## Letting others in the server use it
+DMs need pairing, but a server channel has its own access list. A channel added with `/discord:access group add CHANNEL_ID` and no `--allow` list lets anyone in that channel @mention the bot. To limit it to certain people: `/discord:access group add CHANNEL_ID --allow USER_ID1,USER_ID2` (right-click a person → Copy User ID). Run `/discord:access` to see the current settings.
+
+Every review counts against your Claude subscription's usage, and a subscription is meant for personal use, so keep this to a small group.
+
+## Troubleshooting
+- **Bot shows offline / red X next to Discord in `/mcp`:** the plugin's connector failed to start. The container installs its dependencies on start, so run `docker restart duels-review-claude` first. If it's still red, select it in `/mcp` and press Enter to see the error. "Invalid token" means re-run `/discord:configure`; "disallowed intents" means turn on Message Content Intent.
+- **Stuck on a warning screen:** attach and accept the permissions prompt.
+
 ## Day to day
 - Reviews are saved in `/mnt/user/appdata/duels-review-claude/work/reviews/`. Posting the same link again reposts the saved review instead of using your usage on a new one.
 - To watch what it's doing: `docker exec -it duels-review-claude tmux attach -t claude` (detach with Ctrl-b, d; don't type `/exit` unless you want it to restart).
