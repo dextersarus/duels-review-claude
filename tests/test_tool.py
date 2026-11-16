@@ -140,3 +140,25 @@ def test_apply_patch_ops():
     t._apply(doc, {"op": "replace", "path": "/b/c", "value": 2})
     t._apply(doc, {"op": "add", "path": "/b/d~1e", "value": True})
     assert doc == {"a": [1, 3, 9], "b": {"c": 2, "d/e": True}}
+
+
+def test_mulligan_info_and_earlier_games():
+    karn = {"fullName": "Don Karnage - Debonair Pirate", "type": "character"}
+    def game(n, frames):
+        return {"format": "duels-replay-v1", "perspective": 2, "winner": 1, "victoryReason": "concession",
+                "playerNames": {"1": "Alber0", "2": "SalamanderBeats"},
+                "baseSnapshot": {"myPlayer": {"hand": []}, "opponent": {"handCount": 7, "field": [], "discard": []},
+                                 "mulliganInks": {"myInks": ["amber", "emerald"], "opponentInks": ["emerald", "ruby"]}},
+                "frames": frames,
+                "logs": [{"turnNumber": 1, "player": 2, "type": "INITIAL_HAND", "message": "Your starting hand: x"}]}
+    g1 = game(1, [{"actionType": "PLAY_CARD", "player": 1, "turnNumber": 1, "logCountAfter": 1,
+                   "patch": [{"op": "add", "path": "/opponent/field/0", "value": karn},
+                             {"op": "add", "path": "/opponent/discard/0", "value": karn}]}])
+    g2 = game(2, [{"actionType": "PASS", "player": 1, "turnNumber": 1, "logCountAfter": 1, "patch": []}])
+    match = t.Match("x" * 36, {"1": "Alber0", "2": "SalamanderBeats"}, 2, 1, "bo3",
+                    [t.Game(1, g1, 1, "concession"), t.Game(2, g2, 1, "concession")])
+    out = t.build_prompt_data(match)
+    g1_part, g2_part = out.split("GAME 2:")
+    assert "Alber0's ink colors shown on the mulligan screen: emerald, ruby (SalamanderBeats: amber, emerald)" in g1_part
+    assert "Game 1 is judged blind" in g1_part and "CARDS Alber0 SHOWED" not in g1_part
+    assert "CARDS Alber0 SHOWED IN EARLIER GAMES OF THIS MATCH (known from this game's mulligan on): Don Karnage - Debonair Pirate" in g2_part

@@ -13,8 +13,16 @@ The log shows the whole game, but the player didn't have it. Every decision is j
 - **Revealed information counts from the moment it's revealed.** Once a hand was revealed, those cards are known, as long as the opponent hasn't been seen playing or losing them since. The opponent's later draws are not known.
 - The win-probability swings come from duels.ink's engine, which scores positions after the fact. Use them only to find moments worth checking, never as evidence of what the player knew or should have expected.
 
+## Mulligan first, every game
+The first thing you judge in every game is the mulligan, and you always state the decision: what was kept, what was sent back, and whether that was right.
+- **What was known:** only what was on the mulligan screen. That's the opening hand (INITIAL_HAND), whether they were on the play or the draw, the opponent's ink colors if the transcript lists them, and the opponent's mulligan count only if it's logged before the player's own MULLIGAN line.
+- **Game 1 is blind.** The player hasn't seen a single card of the opponent's deck yet. Judge the keep on the player's own deck: curve and early plays, inkable count, key pieces, play or draw. The opponent's ink colors may be used only as a broad hint about likely archetypes. Never use cards the opponent showed later in the match.
+- **Game 2 onward:** also use what the opponent showed in earlier games, listed on the game's `CARDS … SHOWED IN EARLIER GAMES` line. Judge the keep against that deck and the player's plan for the matchup. Cards seen only later in the current game, or in later games, are not known.
+- **No hindsight here either.** The cards drawn after the mulligan were unknown when the choice was made. Judge the decision, not how the new cards turned out.
+- **Give the better option when there is one:** which cards to keep or send and why, with the reasoning a top player would give. If the mulligan was right, say so in one line.
+
 ## Method: do this before writing anything
-1. **Map both decks.** List every card each player showed across all games (played, inked, discarded, revealed). Identify the archetype and its plan: how it wins, its key threats, its sweepers and removal, its singers and songs. Lorcana decks run up to 4 copies; when a card appears, assume more copies are possible.
+1. **Map both decks.** List every card each player showed across all games (played, inked, discarded, revealed). This map is for understanding the match; when judging a decision, use only the part that was known at that point (see the mulligan rules and "No hindsight"). Identify the archetype and its plan: how it wins, its key threats, its sweepers and removal, its singers and songs. Lorcana decks run up to 4 copies; when a card appears, assume more copies are possible.
 2. **Find the clock for each game.** Who was the beatdown and who was control? Track lore turn by turn and work out the turn each player threatened to reach 20. Most games are decided by one player's clock arriving before the other's answer.
 3. **Locate the turning points.** Start with the WIN PROBABILITY SWINGS list. It's duels.ink's engine estimate, so it's noisy around hidden draws and doesn't know about concessions. Use it to find candidates, then decide for yourself which moments mattered and look for ones it missed.
 4. **For each candidate, rebuild the game state at that play from the log:**
@@ -27,7 +35,6 @@ The log shows the whole game, but the player didn't have it. Every decision is j
 7. **Check the opponent's best response** to your recommended line. A line that loses to their obvious reply isn't better.
 
 ## What champions look at
-- **Mulligans** for the matchup and play/draw: curve, inkable count, key pieces.
 - **Inking:** which card went to ink, and whether ink was missed or over-committed (uninkables, needing a card later).
 - **Sequencing:** quest before or after challenging, ink before or after drawing information, playing discounters and "when you play" effects in the right order, holding cards back to play around sweepers.
 - **Board and challenges:** good trades, removing singers or engines, leaving characters exerted into a known challenger, Bodyguard placement.
@@ -53,11 +60,13 @@ Follow the "Discord formatting" rules in CLAUDE.md. Layout:
 
 ### Game 1: <result>
 <one line on each deck's plan and the clock>
+- **Mulligan:** kept <cards>, sent back <cards> (<on the play/draw>, blind). <right, or the better keep and why>
 - **24/102:** <what happened>. Better: <line with its numbers>. <why it matters, e.g. `58% → 36%`>
 - **53/102** *(minor)*: …
 - **87/102**: <a play that looks wrong but was correct, and why>
 
 ### Game 2: <result>
+- **Mulligan:** kept …, sent back … (knowing their deck from Game 1). <right, or the better keep and why>
 …
 
 ### Takeaways
@@ -65,6 +74,6 @@ Follow the "Discord formatting" rules in CLAUDE.md. Layout:
 -# Win percentages are duels.ink's engine estimate.
 ```
 
-- Order bullets by importance. Mark minor points as minor.
+- The **Mulligan** bullet always comes first in each game. After it, order bullets by importance. Mark minor points as minor.
 - Name cards exactly as in the card reference.
 - Aim for under 3,500 characters total. Spend the space on the 2–3 decisions that mattered most rather than covering everything.

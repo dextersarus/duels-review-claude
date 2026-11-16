@@ -250,7 +250,49 @@ def turn_snapshots(game: "Game", names: dict[str, str], perspective: int, first_
     return out
 
 
-def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
+def mulligan_inks(data: dict) -> tuple[list, list] | None:
+    """(my inks, opponent inks) as shown on the mulligan screen, if the replay has them."""
+    cands = [data.get("baseSnapshot", {}).get(k) for k in ("mulliganInks", "coinTossInks")]
+    for f in data.get("frames", [])[:6]:
+        for p in f.get("patch", []):
+            if p.get("path") in ("/mulliganInks", "/coinTossInks"):
+                cands.append(p.get("value"))
+    for c in cands:
+        if isinstance(c, dict) and c.get("opponentInks"):
+            return list(c.get("myInks") or []), list(c.get("opponentInks") or [])
+    return None
+
+
+def opponent_cards_shown(data: dict) -> dict[str, int]:
+    """Every card the opponent showed in this game -> most copies seen at once (board, discard, ink, reveals)."""
+    state = json.loads(json.dumps(data.get("baseSnapshot", {})))
+    best: dict[str, int] = {}
+
+    def note(cards):
+        counts: dict[str, int] = {}
+        for c in cards:
+            if isinstance(c, dict):
+                name = c.get("fullName") or (c.get("card") or {}).get("fullName")
+                if name and not c.get("hidden"):
+                    counts[name] = counts.get(name, 0) + 1
+        for n, k in counts.items():
+            best[n] = max(best.get(n, 0), k)
+
+    for f in data.get("frames", []):
+        for p in f.get("patch", []):
+            try:
+                _apply(state, p)
+            except (IndexError, KeyError, ValueError, TypeError, AttributeError):
+                pass
+        o = state.get("opponent", {})
+        zones = [x for z in ("field", "discard", "items", "inkwell", "revealedHand")
+                 for x in (o.get(z) or []) if isinstance(o.get(z), list)]
+        note(zones)
+    return best
+
+
+def transcript(game: Game, names: dict[str, str], perspective: int,
+               earlier: dict[str, int] | None = None) -> str:
     data = game.data
     frames = data.get("frames", [])
     logs = data.get("logs", [])
@@ -286,6 +328,21 @@ def transcript(game: Game, names: dict[str, str], perspective: int) -> str:
         f'Log perspective: "You" = {me} (player {perspective}), "Opponent" = {opp}. '
         f"{opp}'s hand and draws are hidden unless revealed.",
         f"=== TURN START === blocks show the board at the start of each turn: exactly what {me} could see then.",
+    ]
+    inks = mulligan_inks(data)
+    known = [f"MULLIGAN: what {me} knew when choosing: their own opening hand (INITIAL_HAND line), "
+             f"whether they were on the play or the draw"]
+    if inks:
+        known.append(f"{opp}'s ink colors shown on the mulligan screen: {', '.join(inks[1]) or 'unknown'}"
+                     f" ({me}: {', '.join(inks[0]) or 'unknown'})")
+    known.append(f"{opp}'s mulligan count only if it's logged before {me}'s own MULLIGAN line")
+    lines.append("; ".join(known) + ".")
+    if game.number == 1 or not earlier:
+        lines.append(f"Game {game.number} is judged blind: {me} had not seen {opp}'s cards yet.")
+    else:
+        shown = ", ".join(f"{n} x{k}" if k > 1 else n for n, k in sorted(earlier.items()))
+        lines.append(f"CARDS {opp} SHOWED IN EARLIER GAMES OF THIS MATCH (known from this game's mulligan on): {shown}")
+    lines += [
         "",
     ]
 
@@ -359,9 +416,12 @@ def build_prompt_data(match: Match) -> str:
         *[f"- {n}: {t}" for n, t in sorted(cards.items())],
         "",
     ]
+    earlier: dict[str, int] = {}
     for g in match.games:
-        parts.append(transcript(g, names, match.perspective))
+        parts.append(transcript(g, names, match.perspective, dict(earlier)))
         parts.append("")
+        for n, k in opponent_cards_shown(g.data).items():
+            earlier[n] = max(earlier.get(n, 0), k)
     return "\n".join(parts)
 
 

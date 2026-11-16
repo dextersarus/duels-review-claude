@@ -2,6 +2,10 @@
 
 Newest first. Each `## <version>` section is posted to Discord the first time the bot starts on that version. Write the bullets for the people using the bot: what changed for them, in plain words.
 
+## 1.8.0 (2026-11-16)
+- Every game's review now starts with the mulligan: what you kept, what you sent back, and whether that was right.
+- Game 1's mulligan is judged blind, using only what the mulligan screen showed (your hand, play or draw, the opponent's ink colors). From Game 2 on, it also uses every card the opponent showed in the earlier games.
+
 ## 1.7.0 (2026-11-16)
 - Want to talk about a review without the bot answering? Start your message with `//` and it stays out of it, even if you reply to one of its messages. Plain messages in a thread (no reply to the bot, no @mention) are already ignored.
 
