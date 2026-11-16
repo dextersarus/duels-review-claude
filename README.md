@@ -101,6 +101,7 @@ When the limit is hit you'll get one message like "Claude usage limit reached. R
 - When a link is posted in a channel, the bot starts a thread on your message, posts an estimate there, then posts the review in the thread and pings you. It deletes the estimate and reacts ✅ on your message (❌ with a one-line reason if something failed). In DMs it answers in the DM.
 - Ask questions or call out mistakes inside the review's thread by replying to one of the bot's messages (or @mentioning it). It answers with a new message and never edits the original review; confirmed corrections are saved in `work/reviews/<id>.followups.md` and included if the review is reposted.
 - The plugin can't create threads or delete messages, so `work/discord_tool.py` does those two things through Discord's API, using the bot token the plugin already stores. It only deletes the bot's own messages.
+- **The bot learns from corrections.** When someone's call-out checks out against the replay and card text, the bot saves a general lesson to `work/lessons.md` and posts "📌 Saved for future reviews: …" in the thread. It reads that file before every review. Strategy disagreements that come down to judgment aren't saved. To drop a lesson, tell the bot ("remove that lesson") or delete the line from the file. `lessons.md` is yours: updates never overwrite it.
 - **Bot permissions:** threads need **Create Public Threads** and **Send Messages in Threads**. If you invited the bot before threads were added: Server Settings → Roles → the bot's role → turn both on (or re-invite it with the URL from step 1).
 - The estimate ("about 3 minutes") starts from a rough default and, after 3 reviews, uses how long reviews actually take on your server (`work/reviews/timings.csv`).
 - To re-run an old review with the latest rules, delete its file from `work/reviews/` (the `.md`) and post the link again.
@@ -122,6 +123,7 @@ To get permission prompts back instead, edit the container in the Docker tab, op
 - `work/CLAUDE.md`: standing instructions for the Discord session (replaced on every start; edit it in the repo).
 - `work/review-rules.md`: the champion-level review method and format (replaced on every start; edit it in the repo).
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
+- `work/lessons.md`: lessons the bot has learned from confirmed corrections (kept across updates).
 - `work/discord_tool.py`: starts the review thread and deletes the bot's own estimate message (the plugin can't do either).
 - `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked and a board snapshot at the start of every turn (what the recording player could see then) (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
 - `unraid/duels-review-claude.xml`: Unraid container template.
