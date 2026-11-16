@@ -7,6 +7,7 @@ services:
     # environment:
     #   CLAUDE_FLAGS: ""   # uncomment to turn permission prompts back on (approve them via Discord DM buttons)
     #   DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/..."   # usage-limit alerts
+    #   UPDATES_CHANNEL_ID: "123456789012345678"   # channel for update notes
     volumes:
       # Unraid appdata locations; change if you keep appdata elsewhere.
       - /mnt/user/appdata/duels-review-claude/home:/home/claude

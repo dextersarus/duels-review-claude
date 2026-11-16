@@ -93,6 +93,13 @@ When your Claude usage limit is hit, the bot can't post anything itself, so a sm
 
 When the limit is hit you'll get one message like "Claude usage limit reached. Replay reviews are paused. It resets **9pm**." Repost any link that didn't get its review once it resets. Treat the webhook URL like a password: anyone with it can post in that channel.
 
+## Update notes (optional)
+After each update the bot posts what's new, from `CHANGELOG.md`, in a channel you choose:
+1. In Discord, right-click the channel → **Copy Channel ID**. Make sure the bot can see and post there (channel settings → Permissions → add the bot's role with View Channel and Send Messages).
+2. In Unraid: Docker tab → click the container → **Edit** → paste it into **Update notes channel ID** → **Apply**. On an older template, add a Variable with Key `UPDATES_CHANNEL_ID`.
+
+It posts once per new version, when the container starts on it. The first time, it posts only the newest version's notes. Without a channel ID it falls back to the usage-limit webhook, if you set one.
+
 ## Troubleshooting
 - **Bot shows offline / red X next to Discord in `/mcp`:** the plugin's connector failed to start. The container installs its dependencies on start, so run `docker restart duels-review-claude` first. If it's still red, select it in `/mcp` and press Enter to see the error. "Invalid token" means re-run `/discord:configure`; "disallowed intents" means turn on Message Content Intent.
 - **Stuck on a warning screen:** attach and accept the permissions prompt.
@@ -128,4 +135,5 @@ To get permission prompts back instead, edit the container in the Docker tab, op
 - `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked and a board snapshot at the start of every turn (what the recording player could see then) (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
 - `unraid/duels-review-claude.xml`: Unraid container template.
 - `watch_limits.py`: posts the usage-limit alert to your Discord webhook.
+- `announce_update.py` and `CHANGELOG.md`: post the update notes after each update.
 - `.github/workflows/docker-publish.yml`: runs the tests and publishes the image to ghcr.io.
