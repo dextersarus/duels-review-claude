@@ -76,7 +76,9 @@ Attach again (`docker exec -it duels-review-claude tmux attach -t claude`). If C
 1. Each of you DMs the bot. It replies with a pairing code. For each code, type in Claude Code: `/discord:access pair CODE`
 2. Lock it to you two: `/discord:access policy allowlist`
 3. Let it read your replay channel: `/discord:access group add CHANNEL_ID`
-   - By default it only answers when @mentioned in that channel. To have it react to every message there, use `/discord:access group add CHANNEL_ID --no-mention` instead.
+   - By default it only answers when @mentioned in that channel. To have replay links reviewed without an @mention (recommended), also run:
+     `/discord:access set mentionPatterns '["duels.ink/replay/"]'`
+     Any message with a replay link then counts as a mention, and ordinary chat never reaches the bot. Avoid `--no-mention`: it sends every message in the channel to the bot.
 4. Detach (**Ctrl-b**, **d**).
 
 Test it: post `@YourBot https://duels.ink/replay/01a1cc4f-fbdf-7e6e-bacc-fde2b926f080` in the channel, or DM it the link.
