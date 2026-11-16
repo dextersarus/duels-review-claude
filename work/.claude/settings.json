@@ -3,6 +3,7 @@
     "allow": [
       "Bash(python3 replay_tool.py:*)",
       "Bash(python3 discord_tool.py delete:*)",
+      "Bash(python3 discord_tool.py thread:*)",
       "Read(./**)",
       "Edit(./reviews/**)"
     ],
