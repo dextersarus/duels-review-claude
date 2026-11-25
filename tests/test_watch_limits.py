@@ -32,3 +32,27 @@ def test_no_limit_in_normal_output():
 def test_message_wording():
     assert "resets **9pm**" in w.message("9pm")
     assert "Check back" in w.message(None)
+
+
+def test_reset_line_clears_the_limit():
+    pane = "Claude usage limit reached. Your limit will reset at 9pm.\n...\nYour usage limit has reset.\n"
+    assert w.find_limit(pane) is None
+
+
+def test_will_reset_is_still_a_limit():
+    assert w.find_limit("Your limit will reset at 9pm") is not None
+
+
+def test_new_limit_after_a_reset_counts():
+    pane = "Your usage limit has reset.\nYou've hit your session limit · resets 3am\n"
+    line, reset = w.find_limit(pane)
+    assert "session limit" in line and reset == "3am"
+
+
+def test_reset_message_wording():
+    assert "has reset" in w.RESET_MESSAGE and "limit reached" not in w.RESET_MESSAGE
+
+
+def test_short_reset_notice():
+    assert w.find_limit("Claude usage limit reached.\nUsage limit reset\n") is None
+    assert w.find_limit("Usage limit resets at 9pm") is not None

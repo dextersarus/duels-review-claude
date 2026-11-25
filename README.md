@@ -93,7 +93,7 @@ When your Claude usage limit is hit, the bot can't post anything itself, so a sm
 1. In Discord: **Server Settings → Integrations → Webhooks → New Webhook**. Pick your replay channel, name it (e.g. "Replay Coach status"), give it the bot's icon if you like, then **Copy Webhook URL**.
 2. In Unraid: Docker tab → click the container → **Edit** → paste it into **Discord webhook URL** → **Apply**.
 
-When the limit is hit you'll get one message like "Claude usage limit reached. Replay reviews are paused. It resets **9pm**." Repost any link that didn't get its review once it resets. Treat the webhook URL like a password: anyone with it can post in that channel.
+When the limit is hit you'll get one message like "Claude usage limit reached. Replay reviews are paused. It resets **9pm**." When it resets you'll get "Claude usage limit has reset. Replay reviews are back on." Repost any link that didn't get its review then. Treat the webhook URL like a password: anyone with it can post in that channel.
 
 ## Update notes (optional)
 After each update the bot posts what's new, from `CHANGELOG.md`, in a channel you choose:

@@ -2,6 +2,9 @@
 
 Newest first. Each `## <version>` section is posted to Discord the first time the bot starts on that version. Write the bullets for the people using the bot: what changed for them, in plain words.
 
+## 1.8.1 (2026-11-25)
+- When the Claude usage limit resets, the alert channel now says "✅ Claude usage limit has reset" instead of posting the limit-reached message again.
+
 ## 1.8.0 (2026-11-16)
 - Every game's review now starts with the mulligan: what you kept, what you sent back, and whether that was right.
 - Game 1's mulligan is judged blind, using only what the mulligan screen showed (your hand, play or draw, the opponent's ink colors). From Game 2 on, it also uses every card the opponent showed in the earlier games.
