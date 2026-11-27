@@ -2,7 +2,11 @@
 
 Written by a strong player on our team. Use it when the player you're reviewing (`REVIEW FROM:`) is on Amber/Emerald Princess Aggro. Treat it as expert heuristics, not rules: the board state, the card text in the transcript's card reference and `review-rules.md` always win. When a play follows or breaks this guide, say so and judge whether the guide was right for that position.
 
-Card names below are the author's short names (Aurora, Pluto, Willow, Little Pokie, Thomas, Elinor, Dale, Amber Champion, Big Booties, David, Ursula, Mowgli). Match each to the full card name in the replay's card reference before relying on it, and never guess a card's text from its nickname. If a nickname doesn't match any card in the deck, ignore the tips that need it.
+Names used below:
+- **Amber Champion** is **Mickey Mouse - Amber Champion**.
+- **Big booties** isn't one card: it means any character with a lot of willpower. They're the ones that pair well with Dale's ability.
+- **BBL** also just means a lot of willpower: **David** and **Thomas** are 1-drops with 4 willpower each, so they survive early challenges and keep questing.
+- The rest (Aurora, Pluto, Willow, Little Pokie, Thomas, David, Elinor, Dale, Ursula, Mowgli) are short names: match each to the full card name in the replay's card reference before relying on a tip, and never guess a card's text from its name. If a name doesn't match any card in the deck, ignore the tips that need it.
 
 ## How the deck wins
 Go wide fast with cheap characters and cost reducers, then cash in with 4-drops. Aim to have 4 characters on the board on turn 2. Elinor rewards ending the turn with 3 or more of your characters exerted.
@@ -18,7 +22,7 @@ What doesn't fit goes to the bottom.
 **On the play, the ideal opener:**
 - Pluto or Aurora.
 - Willow or Little Pokie. With Willow you also want a second Willow or a Little Pokie, depending on the turn-1 reducer: with Pluto either is great; with Aurora it has to be Little Pokie.
-- A 1-drop, usually **Thomas**: his BBL means he'll usually get at least 2 quests in.
+- A 1-drop, usually **Thomas**: with 4 willpower he's hard to challenge early, so he'll usually get at least 2 quests in.
 - A 4-drop, ideally Elinor. Against Steel, Amber Champion over anything else.
 "Pluto, Willow, Thomas" plus a 4-drop is a great hand.
 
@@ -42,5 +46,5 @@ If there's any way to get 4 characters down on turn 2, do it. Even better: bait 
 
 ## Main combos
 - 3 or more characters plus Elinor.
-- Big Booties plus Dale.
+- Big booties (characters with lots of willpower) plus Dale.
 - Dale plus Amber Champion.

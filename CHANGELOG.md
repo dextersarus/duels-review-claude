@@ -2,6 +2,9 @@
 
 Newest first. Each `## <version>` section is posted to Discord the first time the bot starts on that version. Write the bullets for the people using the bot: what changed for them, in plain words.
 
+## 1.9.1 (2026-11-27)
+- The Princess Aggro guide now names Mickey Mouse - Amber Champion and explains "big booties": characters with lots of willpower, like David and Thomas, that pair well with Dale.
+
 ## 1.9.0 (2026-11-27)
 - Reviews of Amber/Emerald Princess Aggro now use our team's playing guide: mulligan targets, ideal openers, which 4-drop to play on turn 3 (on the play or draw, against Steel or not) and the deck's main combos. The review says when a play follows or breaks the guide.
 
