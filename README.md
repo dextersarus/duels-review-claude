@@ -133,6 +133,7 @@ To get permission prompts back instead, edit the container in the Docker tab, op
 - `work/CLAUDE.md`: standing instructions for the Discord session (replaced on every start; edit it in the repo).
 - `work/review-rules.md`: the champion-level review method and format (replaced on every start; edit it in the repo).
 - `work/context.md`: Princess vs Circle notes, used only for that matchup.
+- `work/guides/`: playing guides for specific decks (now: Amber/Emerald Princess Aggro), used when the reviewed player is on that deck. They come from the image, so add or edit guides in the repo.
 - `work/lessons.md`: lessons the bot has learned from confirmed corrections (kept across updates).
 - `work/discord_tool.py`: starts the review thread and deletes the bot's own estimate message (the plugin can't do either).
 - `work/replay_tool.py`: fetches a replay and duels.ink's win-probability estimates and prints the play-by-play with the biggest swings marked and a board snapshot at the start of every turn (what the recording player could see then) (standard-library Python; also handy on its own: `python3 replay_tool.py <link>`).
